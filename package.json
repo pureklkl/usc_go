@@ -10,5 +10,10 @@
     "react": "15.3.2",
     "react-native": "0.34.0",
     "react-native-vector-icons": "^2.0.3"
+  },
+  "devDependencies": {
+    "eslint-plugin-async-await": "0.0.0",
+    "react-native-keyboard-aware-scroll-view": "^0.2.0",
+    "react-native-store": "^0.4.1"
   }
 }

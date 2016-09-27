@@ -16,15 +16,19 @@
 
 import  {FloatSearchResult} from './AutoSearchResult';
 import  {Dispatcher} from './minFlux/Dispatcher'
+import  {LocatorSuggestion} from './uscapi/LocatorSuggestion';
 
  class nativebaseTutorial extends Component {
 
     constructor(){
       super();
       this.dispather = new Dispatcher();
+      this.locatorSuggestion = new LocatorSuggestion();
     }
     
     componentDidMount(){
+      this.dispather.viewRegist('suggestionReady', this._searchBar);
+      this.dispather.viewRegist('waitSuggestion', this._searchResult);
       this.dispather.viewRegist('queryChange', this._searchResult);
       this.dispather.viewRegist('queryClear',  this._searchBar);
       this._searchBar.nextState = (eventKey, dataKeys)=>{
@@ -34,13 +38,17 @@ import  {Dispatcher} from './minFlux/Dispatcher'
                                         this.queryChange('');
                                         this._searchBar.setState({});
                                         }
+                                        if(eventKey=='suggestionReady'){
+                                          var query = this.dispather.getData('query');
+                                          if(query)
+                                            this.queryChange(query);
+                                        }
                                   };
-      
+      this.locatorSuggestion.init(this.dispather);
     }
 
     render() {
 
-        var that = this;
         return (
             <Container>
                 <Header style={{backgroundColor: '#990000' }}>
@@ -69,17 +77,27 @@ import  {Dispatcher} from './minFlux/Dispatcher'
     queryChange(text){
         var query=text.trim();
         if(query.length>0){
-          this.dispather.dataStore('querySuggestion', [{fullName:'aaa',shortName: 'bbb'},
-                                                       {fullName:'ccc',shortName:'ddd'}]);
+          if(!this.locatorSuggestion.isIndexReady()){
+            this.dispather.dataStore('query', query);
+            this.dispather.triger('waitSuggestion',[]);
+            return;
+          }
+          var suggestionShow=[];
+          var suggestions=this.locatorSuggestion.getSuggestion(query);
+          suggestions.forEach((s)=>{
+            suggestionShow.push({fullName:s.data.name,
+                                 shortName:s.data.code});
+          });
+          this.dispather.dataStore('querySuggestion', suggestionShow);
         }
         else{
+          console.log('clear');
           this.dispather.dataStore('querySuggestion', []);
         }
         this.dispather.triger('queryChange', 'querySuggestion');
     }
 
     clearQuery(){
-        console.log('clicked'); 
         this.dispather.triger('queryClear','');
     }
  }

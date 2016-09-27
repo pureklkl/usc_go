@@ -1,18 +1,20 @@
  import React, { Component } from 'react';
- import {Platform } from 'react-native';
+ import {ListView, Platform } from 'react-native';
  import NativeBaseComponent from './node_modules/native-base/Components/Base/NativeBaseComponent';
  import { Spinner, Text, View, Content, 
-          Container, Header, Title, 
+          Container, Grid, Col, 
           Button, Icon, InputGroup, 
           Input, ListItem, List, 
           Radio, CheckBox, Thumbnail, 
           Card, CardItem, H3 } from 'native-base';
+import { KeyboardAwareListView } from 'react-native-keyboard-aware-scroll-view';
 
 export class FloatSearchResult extends NativeBaseComponent {
 
 	constructor(){
 		super();
-		this.state={show:false};
+		this.state={show:false,
+					wait:false};
 	}
 
 	nextState(eventKey, dataKeys){
@@ -23,11 +25,16 @@ export class FloatSearchResult extends NativeBaseComponent {
 						console.log(data);
 						this.itemData=data;
 						console.log(this.itemData);
-						this.setState({show:true});
+						this.setState({show:true,
+									   wait:false});
 					}
 					else{
-						this.setState({show:false});
-					}
+						this.setState({show:false,
+									   wait:false});
+					}break;
+			case 'waitSuggestion':
+				this.setState({show:true,
+							   wait:true});
 				break;
 		}
 	}
@@ -71,16 +78,63 @@ export class FloatSearchResult extends NativeBaseComponent {
         }
         return itemView;
 	}
-	
-	render() {
-		if(this.state.show){
+
+	renderPerChildren(item){
+		var itemStyle = this.getInitialStyle().itemDefault;
+		if(item.key==0)
+			itemStyle.borderTopWidth=1;
 		return (
-				<List >
-					{this.renderChildren()}
-				</List>
+				<ListItem style={itemStyle}>
+					<Text>{item.data.fullName+'\n'+item.data.shortName}</Text>
+				</ListItem>
 			);
+	}
+	
+	warperResult(items){
+		this.itemDataWraper=[];
+		items.forEach((item,index)=>{
+			this.itemDataWraper.push({key:index,
+									  data:item});
+		});
+	}
+	renderWait(){
+		var itemStyle = this.getInitialStyle().itemDefault;
+		return (
+				<ListItem style={itemStyle}>
+					<Spinner />
+				</ListItem>
+			);
+	}
+	componentDidUpdate(){
+		if(this.listResp)
+			this.listResp.getScrollResponder().scrollTo({x:0,y:0,animated:true});
+	}
+	render() {
+		console.log(this.state);
+		if(this.state.show){
+			if(!this.state.wait){
+				this.warperResult(this.itemData);
+				const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
+				var dataSource = ds.cloneWithRows(this.itemDataWraper);
+				return (
+						<Grid>
+							<Col style={{height: 450}}>
+							<ListView dataSource={dataSource} 
+							  	renderRow={(item)=>this.renderPerChildren(item)} 
+							  	ref={(list)=>{this.listResp=list;}}/>
+							</Col>
+						</Grid>
+						);
+			}
+			else
+				return (
+						<List >
+							{this.renderWait()}
+						</List>
+					);
 		}
 		else{
+			console.log('clear');
 			return null;
 		}
 	}
