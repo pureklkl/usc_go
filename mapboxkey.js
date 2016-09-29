@@ -1,0 +1,1 @@
+export const mapboxpk='pk.eyJ1IjoicHVyZWtsa2wiLCJhIjoiY2l0bW9vbG82MDF4cTJvcGN2dGkyNXpkaCJ9.754cJ-hB-YxaSRfAbScPEw';

@@ -9,9 +9,11 @@
     "native-base": "^0.5.8",
     "react": "15.3.2",
     "react-native": "0.34.0",
+    "react-native-mapbox-gl": "^5.0.0",
     "react-native-vector-icons": "^2.0.3"
   },
   "devDependencies": {
+    "eslint": "^3.6.1",
     "eslint-plugin-async-await": "0.0.0",
     "react-native-keyboard-aware-scroll-view": "^0.2.0",
     "react-native-store": "^0.4.1"

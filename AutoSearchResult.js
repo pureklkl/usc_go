@@ -1,7 +1,7 @@
  import React, { Component } from 'react';
- import {ListView, Platform } from 'react-native';
+ import {ListView, Platform, TouchableHighlight, TouchableOpacity, Text, View } from 'react-native';
  import NativeBaseComponent from './node_modules/native-base/Components/Base/NativeBaseComponent';
- import { Spinner, Text, View, Content, 
+ import { Spinner, Content, 
           Container, Grid, Col, 
           Button, Icon, InputGroup, 
           Input, ListItem, List, 
@@ -44,6 +44,7 @@ export class FloatSearchResult extends NativeBaseComponent {
 			default: {
 			},
 			itemDefault: {
+				backgroundColor: 'white',
 				marginLeft: 30,
 				marginRight: 30,
 				borderLeftWidth: 1,
@@ -79,14 +80,23 @@ export class FloatSearchResult extends NativeBaseComponent {
         return itemView;
 	}
 
+	setNativeProps (nativeProps) {
+    	this._listChilde.setNativeProps(nativeProps);
+  	}
+
 	renderPerChildren(item){
 		var itemStyle = this.getInitialStyle().itemDefault;
 		if(item.key==0)
 			itemStyle.borderTopWidth=1;
 		return (
-				<ListItem style={itemStyle}>
-					<Text>{item.data.fullName+'\n'+item.data.shortName}</Text>
-				</ListItem>
+				<View style={itemStyle}>
+				<TouchableOpacity onPress={() => {//this._pressRow(rowID);
+          								   }}>
+					<View>
+						<Text>{item.data.fullName+'\n'+item.data.shortName}</Text>
+					</View>
+				</TouchableOpacity>
+				</View>
 			);
 	}
 	
@@ -100,6 +110,7 @@ export class FloatSearchResult extends NativeBaseComponent {
 	renderWait(){
 		var itemStyle = this.getInitialStyle().itemDefault;
 		return (
+
 				<ListItem style={itemStyle}>
 					<Spinner />
 				</ListItem>

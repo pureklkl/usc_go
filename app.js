@@ -6,7 +6,8 @@
  */
 
  import React, { Component } from 'react';
- import { AppRegistry, StyleSheet, Modal, Image, Platform } from 'react-native';
+ import { AppRegistry, StyleSheet, Modal, Image, Platform, PermissionsAndroid } from 'react-native';
+ 
  import { Spinner, Text, View, Content, 
           Container, Header, Title, 
           Button, Icon, InputGroup, 
@@ -14,11 +15,15 @@
           Radio, CheckBox, Thumbnail, 
           Card, CardItem, H3 } from 'native-base';
 
+
 import  {FloatSearchResult} from './AutoSearchResult';
 import  {Dispatcher} from './minFlux/Dispatcher'
 import  {LocatorSuggestion} from './uscapi/LocatorSuggestion';
 
- class nativebaseTutorial extends Component {
+import {MapExample} from './exampleMap';
+
+
+class nativebaseTutorial extends Component {
 
     constructor(){
       super();
@@ -45,32 +50,50 @@ import  {LocatorSuggestion} from './uscapi/LocatorSuggestion';
                                         }
                                   };
       this.locatorSuggestion.init(this.dispather);
+
+      PermissionsAndroid.checkPermission(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION).then((get)=>{
+        alert(JSON.stringify('fine :'+get));
+        if(!get)
+          PermissionsAndroid.requestPermission(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION);
+      })
+      
+      PermissionsAndroid.checkPermission(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION).then((get)=>{
+        alert(JSON.stringify('COARSE :'+get));
+        if(!get)
+          PermissionsAndroid.requestPermission(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION);
+      })
+
     }
 
     render() {
 
         return (
-            <Container>
-                <Header style={{backgroundColor: '#990000' }}>
-                  <Title style={{fontSize: 36, flex: 1}}>USC GO</Title>
-                </Header>
-                <Content>
+            <View style={{flex: 1}}>
+                <View style={{flexDirection:'row', backgroundColor: '#990000'}}>
+                  <Text style={{fontSize: 36, flex: 1, textAlign:'center', fontWeight:'bold',color:'white'}}>USC GO</Text>
+                </View>
+
+                <View style={{flex: 1}}>   
+    
+                  <MapExample/>
                   
-                  <InputGroup borderType='rounded' style={{margin: 20}}>
-                        <Icon style={{marginLeft:10}} name='ios-search'/>
-                        <Input 
-                          placeholder='Search' style={{height: 60, fontSize: 24}} 
-                          ref={(searchBar)=>{this._searchBar=searchBar;}} 
-                          onChangeText={text=>this.queryChange(text)}/>
-                        <Button large transparent  style={{paddingTop : 15, width:40}} 
-                        onPress={()=>this.clearQuery()}><Icon name='ios-close'/></Button>
-                  </InputGroup>
-                  <FloatSearchResult 
-                    ref={(searchResult)=>{this._searchResult=searchResult;}} 
-                    store={this.dispather}/>
+                  <View style={{position: 'absolute', top: 30, left:0, right:0}}>
+                    <InputGroup borderType='rounded' style={{backgroundColor: 'white',margin: 20}}>
+                          <Icon style={{marginLeft:10}} name='ios-search'/>
+                          <Input 
+                            placeholder='Search' style={{height: 60, fontSize: 24}} 
+                            ref={(searchBar)=>{this._searchBar=searchBar;}} 
+                            onChangeText={text=>this.queryChange(text)}/>
+                          <Button large transparent  style={{width:40}} 
+                          onPress={()=>this.clearQuery()}><Icon name='ios-close'/></Button>
+                    </InputGroup>
+                    <FloatSearchResult 
+                      ref={(searchResult)=>{this._searchResult=searchResult;}} 
+                      store={this.dispather}/>
+                    </View>
                 
-                </Content>
-            </Container>
+                </View>
+            </View>
          );
      }
 
@@ -86,7 +109,9 @@ import  {LocatorSuggestion} from './uscapi/LocatorSuggestion';
           var suggestions=this.locatorSuggestion.getSuggestion(query);
           suggestions.forEach((s)=>{
             suggestionShow.push({fullName:s.data.name,
-                                 shortName:s.data.code});
+                                 shortName:s.data.code,
+                                  latitude:s.data.latitude,
+                                  longitude:s.data.longitude});
           });
           this.dispather.dataStore('querySuggestion', suggestionShow);
         }
