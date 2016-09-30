@@ -36,6 +36,8 @@ class nativebaseTutorial extends Component {
       this.dispather.viewRegist('waitSuggestion', this._searchResult);
       this.dispather.viewRegist('queryChange', this._searchResult);
       this.dispather.viewRegist('queryClear',  this._searchBar);
+      this.dispather.viewRegist('selectLocation',  this._mapView);
+
       this._searchBar.nextState = (eventKey, dataKeys)=>{
                                         if(eventKey=='queryClear'){
                                         console.log('clicked'); 
@@ -52,13 +54,13 @@ class nativebaseTutorial extends Component {
       this.locatorSuggestion.init(this.dispather);
 
       PermissionsAndroid.checkPermission(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION).then((get)=>{
-        alert(JSON.stringify('fine :'+get));
+        //alert(JSON.stringify('fine :'+get));
         if(!get)
           PermissionsAndroid.requestPermission(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION);
       })
       
       PermissionsAndroid.checkPermission(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION).then((get)=>{
-        alert(JSON.stringify('COARSE :'+get));
+        //alert(JSON.stringify('COARSE :'+get));
         if(!get)
           PermissionsAndroid.requestPermission(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION);
       })
@@ -75,7 +77,9 @@ class nativebaseTutorial extends Component {
 
                 <View style={{flex: 1}}>   
     
-                  <MapExample/>
+                  <MapExample
+                    store={this.dispather} 
+                    ref={(mapView)=>{this._mapView=mapView;}}/>
                   
                   <View style={{position: 'absolute', top: 30, left:0, right:0}}>
                     <InputGroup borderType='rounded' style={{backgroundColor: 'white',margin: 20}}>

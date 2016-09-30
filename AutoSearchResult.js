@@ -2,7 +2,6 @@
  import {ListView, Platform, TouchableHighlight, TouchableOpacity, Text, View } from 'react-native';
  import NativeBaseComponent from './node_modules/native-base/Components/Base/NativeBaseComponent';
  import { Spinner, Content, 
-          Container, Grid, Col, 
           Button, Icon, InputGroup, 
           Input, ListItem, List, 
           Radio, CheckBox, Thumbnail, 
@@ -90,7 +89,10 @@ export class FloatSearchResult extends NativeBaseComponent {
 			itemStyle.borderTopWidth=1;
 		return (
 				<View style={itemStyle}>
-				<TouchableOpacity onPress={() => {//this._pressRow(rowID);
+				<TouchableOpacity onPress={() => {
+												this.props.store.dataStore('selectlocationData', item.data);
+												this.props.store.triger('selectLocation','selectlocationData');
+												this.setState({show:false, wait:false});
           								   }}>
 					<View>
 						<Text>{item.data.fullName+'\n'+item.data.shortName}</Text>
@@ -128,13 +130,13 @@ export class FloatSearchResult extends NativeBaseComponent {
 				const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
 				var dataSource = ds.cloneWithRows(this.itemDataWraper);
 				return (
-						<Grid>
-							<Col style={{height: 450}}>
-							<ListView dataSource={dataSource} 
+						
+							<ListView 
+								style={{height:400}} 
+								dataSource={dataSource} 
 							  	renderRow={(item)=>this.renderPerChildren(item)} 
 							  	ref={(list)=>{this.listResp=list;}}/>
-							</Col>
-						</Grid>
+
 						);
 			}
 			else
