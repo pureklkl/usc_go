@@ -77,13 +77,14 @@ export class MapExample extends Component {
   nextState(eventKey, dataKeys){
     switch(eventKey){
       case 'selectLocation':
-                data = this.props.store.getData(dataKeys);
+                var data = this.props.store.getData(dataKeys);
                 console.log(data);
                 var latitude = parseFloat(data.latitude);
                 var longitude = parseFloat(data.longitude);
                 this.annImages['dest'].fullName=data.fullName;
                 this.annImages['dest'].shortName=data.shortName;
-                this.dircect(this.thhCenter, {longitude:longitude, latitude:latitude});
+                this.getSelfLocation(this.self2dest, {longitude:longitude, latitude:latitude});
+                //this.direct(this.thhCenter, {longitude:longitude, latitude:latitude});
                 this.setCenterWithAnn(latitude, longitude, 'dest');
                 break;
       default: return eventKey;
@@ -129,7 +130,7 @@ export class MapExample extends Component {
     return query;
   }
   
-  dircect(src, dest){
+  direct(src, dest){
     var query = this.buildQuery(src, dest);
     fetch(query).
     then((response) => {
@@ -153,6 +154,13 @@ export class MapExample extends Component {
           strokeColor:'#FFCC00'
         })
       })
+  }
+
+  self2dest(selfLa, selfLong, label, destCoordWrap){
+    var destCoord = destCoordWrap[0];
+    if(destCoord){
+      this.direct({latitude:selfLa, longitude:selfLong}, destCoord);
+    }
   }
 
   componentWillMount() {
@@ -194,8 +202,17 @@ export class MapExample extends Component {
   }
   
   setCenterWithAnn(latitude, longitude, id){
+    var title, subtitle;
+    if(id=='self'){
+      title = 'You';
+      subtitle='';
+    }
+    else{
+      title = this.annImages[id].fullName;
+      subtitle = this.annImages[id].shortName;
+    }
     var an = this.buildAnnotation(id, [latitude, longitude], 
-                                   data.fullName, data.shortName, this.annImages[id]);
+                                  title,subtitle, this.annImages[id]);
     this.setAnnotation(an);
     this._map.selectAnnotation(id);
     this.setCenter(latitude,longitude);
@@ -205,14 +222,15 @@ export class MapExample extends Component {
     this._map&&this._map.setCenterCoordinateZoomLevel(latitude, longitude, 18);
   }
 
-  getSelfLocation(callback){
+  getSelfLocation(callback, ...args){
     navigator.geolocation.getCurrentPosition((position) =>{
           console.log(position);
           console.log('l:'+position.latitude+'r:'+position.longitude);
-          callback&&callback(position.latitude, position.longitude, 'self');
+          callback&&callback.call(this, position.coords.latitude, position.coords.longitude, 'self'
+            , args);
           },
           (error) => alert('Locate failed\n'+JSON.stringify(error)),
-          {enableHighAccuracy: false, timeout: 5000, maximumAge: 6000});
+          {enableHighAccuracy: true, timeout: 5000, maximumAge: 6000});
   }
 
 
@@ -228,7 +246,7 @@ export class MapExample extends Component {
             annotationsAreImmutable/>
         <View>
           <Button large transparent style={this.getInitialStyle().button}
-          onPress={()=>{this.getSelfLocation(this.setCenterWithAnn);}}>
+          onPress={()=>{this.getSelfLocation(this.setCenter);}}>
                   <Icon name='md-person'/>
           </Button>
         </View>
