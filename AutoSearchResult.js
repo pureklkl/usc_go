@@ -1,12 +1,8 @@
- import React, { Component } from 'react';
- import {ListView, Platform, TouchableHighlight, TouchableOpacity, Text, View } from 'react-native';
- import NativeBaseComponent from './node_modules/native-base/Components/Base/NativeBaseComponent';
- import { Spinner, Content, 
-          Button, Icon, InputGroup, 
-          Input, ListItem, List, 
-          Radio, CheckBox, Thumbnail, 
-          Card, CardItem, H3 } from 'native-base';
-import { KeyboardAwareListView } from 'react-native-keyboard-aware-scroll-view';
+import React, { Component } from 'react';
+import {ListView, Platform, TouchableHighlight, TouchableOpacity, Text, View } from 'react-native';
+import NativeBaseComponent from './node_modules/native-base/Components/Base/NativeBaseComponent';
+import { Spinner, ListItem} from 'native-base';
+import computeProps from './node_modules/native-base/Utils/computeProps';
 
 export class FloatSearchResult extends NativeBaseComponent {
 
@@ -38,9 +34,14 @@ export class FloatSearchResult extends NativeBaseComponent {
 		}
 	}
 
+	propTypes: {
+        style : React.PropTypes.object
+    };
+
 	getInitialStyle() {
 		return {
 			default: {
+				height:400
 			},
 			itemDefault: {
 				backgroundColor: 'white',
@@ -55,6 +56,14 @@ export class FloatSearchResult extends NativeBaseComponent {
 		}
 	}
 
+	prepareRootProps(){
+		var defaultProps = {
+            style: this.getInitialStyle().default
+        };
+
+        return computeProps(this.props, defaultProps);
+	}
+
 	renderChildren(){
 		var itemView = [];
 		var itemData = this.itemData;
@@ -62,7 +71,7 @@ export class FloatSearchResult extends NativeBaseComponent {
 		if(!Array.isArray(itemData)) {
             return null;
         }
-        else{
+        else{s
         	console.log(itemData);
 			itemData.forEach((item, i)=>{
 				console.log(item.fullName);
@@ -131,8 +140,8 @@ export class FloatSearchResult extends NativeBaseComponent {
 				var dataSource = ds.cloneWithRows(this.itemDataWraper);
 				return (
 						
-							<ListView 
-								style={{height:400}} 
+							<ListView
+								{...this.prepareRootProps()}
 								dataSource={dataSource} 
 							  	renderRow={(item)=>this.renderPerChildren(item)} 
 							  	ref={(list)=>{this.listResp=list;}}/>
@@ -152,3 +161,4 @@ export class FloatSearchResult extends NativeBaseComponent {
 		}
 	}
 }
+

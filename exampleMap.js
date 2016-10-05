@@ -5,16 +5,18 @@ import React, { Component } from 'react';
 import {Image, Platform} from 'react-native';
 import Mapbox, { MapView } from 'react-native-mapbox-gl';
 import {
-  AppRegistry,
   StyleSheet,
   Text,
   StatusBar,
   View,
   ScrollView,
 } from 'react-native';
+
 import {mapboxpk} from './mapboxkey';
+import polyline from 'polyline'
 
 import {Button, Icon} from 'native-base';
+import computeProps from './node_modules/native-base/Utils/computeProps';
 
 console.log(mapboxpk);
 const accessToken = mapboxpk;
@@ -22,11 +24,13 @@ Mapbox.setAccessToken(accessToken);
 
 export class MapExample extends Component {
 
-  state = {
-    center: {
+  thhCenter = {
       latitude: 34.0221900940,
       longitude: -118.2845382690
-    },
+  };
+
+  state = {
+    center: this.thhCenter,
     zoom: 15,
     annotations:[],
     userTrackingMode: Mapbox.userTrackingMode.none
@@ -41,32 +45,115 @@ export class MapExample extends Component {
            width: 25}  
   };
 
-  onRegionDidChange = (location) => {
+  propTypes: {
+      style : React.PropTypes.object
+  };
+
+  getInitialStyle() {
+    return {
+      default: {
+        flex: 1
+      },
+      map:{
+        flex:1
+      },
+      button:{
+        position: 'absolute', 
+        bottom:50, 
+        right:30, 
+        width:80, 
+        height:80
+      }
+    }
+  }
+
+  prepareRootProps(){
+    var defaultProps = {
+            style: this.getInitialStyle().default
+        };
+    return computeProps(this.props, defaultProps);
+  }
+  
+  nextState(eventKey, dataKeys){
+    switch(eventKey){
+      case 'selectLocation':
+                data = this.props.store.getData(dataKeys);
+                console.log(data);
+                var latitude = parseFloat(data.latitude);
+                var longitude = parseFloat(data.longitude);
+                this.annImages['dest'].fullName=data.fullName;
+                this.annImages['dest'].shortName=data.shortName;
+                this.dircect(this.thhCenter, {longitude:longitude, latitude:latitude});
+                this.setCenterWithAnn(latitude, longitude, 'dest');
+                break;
+      default: return eventKey;
+    }
+  }
+
+  onRegionDidChange=(location)=>{
     this.setState({ currentZoom: location.zoomLevel });
     console.log('onRegionDidChange', location);
   };
-  onRegionWillChange = (location) => {
-    console.log('onRegionWillChange', location);
+
+  getMapOptions(){
+      return {
+        initialCenterCoordinate: this.state.center,
+        initialZoomLevel: this.state.zoom,
+        initialDirection: 0,
+        showsUserLocation: true,
+        rotateEnabled: true,
+        scrollEnabled: true,
+        zoomEnabled: true,
+        styleURL: Mapbox.mapStyles.light,
+        userTrackingMode: this.state.userTrackingMode,
+        annotations: this.state.annotations,
+        onRegionDidChange: this.onRegionDidChange
+      };
+  }
+
+  mapboxAPI={
+    addr:'https://api.mapbox.com/directions/v5/',
+    profile:{
+              dirve: 'mapbox/driving/',
+              walk:  'mapbox/walking/'
+            },
+    token:accessToken,
   };
-  onUpdateUserLocation = (location) => {
-    console.log('onUpdateUserLocation', location);
-  };
-  onOpenAnnotation = (annotation) => {
-    console.log('onOpenAnnotation', annotation);
-  };
-  onRightAnnotationTapped = (e) => {
-    console.log('onRightAnnotationTapped', e);
-  };
-  onLongPress = (location) => {
-    console.log('onLongPress', location);
-  };
-  onTap = (location) => {
-    console.log('onTap', location);
-  };
-  onChangeUserTrackingMode = (userTrackingMode) => {
-    this.setState({ userTrackingMode });
-    console.log('onChangeUserTrackingMode', userTrackingMode);
-  };
+
+  buildQuery(src, dest){
+    var query = encodeURI(this.mapboxAPI.addr+this.mapboxAPI.profile.walk)
+                +encodeURIComponent(src.longitude+','+src.latitude+';'
+                                   +dest.longitude+','+dest.latitude+'.json')
+                +'?'+'access_token='+this.mapboxAPI.token;
+    console.log(JSON.stringify(src)+JSON.stringify(dest));
+    return query;
+  }
+  
+  dircect(src, dest){
+    var query = this.buildQuery(src, dest);
+    fetch(query).
+    then((response) => {
+      console.log(response.status); 
+      if(response.status==200)
+        return response.text();
+      else
+        alert('Route failed, please check net connection.');
+      },
+      (reason)=>console.log(reason)).
+      then((responseText) => {
+        var route=JSON.parse(responseText);
+        console.log(JSON.stringify(route));
+        console.log(JSON.stringify(route.routes[0].geometry));
+        var objRoute=polyline.decode(route.routes[0].geometry);
+        console.log(JSON.stringify(objRoute));
+        this.setAnnotation({
+          coordinates: objRoute,
+          type: 'polyline',
+          id: 'route',
+          strokeColor:'#FFCC00'
+        })
+      })
+  }
 
   componentWillMount() {
     this._offlineProgressSubscription = Mapbox.addOfflinePackProgressListener(progress => {
@@ -105,13 +192,15 @@ export class MapExample extends Component {
   removeAnnotation(id){
       this.state.annotations.filter(a => a.id !== id);
   }
+  
   setCenterWithAnn(latitude, longitude, id){
     var an = this.buildAnnotation(id, [latitude, longitude], 
                                    data.fullName, data.shortName, this.annImages[id]);
-                this.setAnnotation(an);
+    this.setAnnotation(an);
     this._map.selectAnnotation(id);
     this.setCenter(latitude,longitude);
   }
+
   setCenter(latitude, longitude){
     this._map&&this._map.setCenterCoordinateZoomLevel(latitude, longitude, 18);
   }
@@ -122,78 +211,28 @@ export class MapExample extends Component {
           console.log('l:'+position.latitude+'r:'+position.longitude);
           callback&&callback(position.latitude, position.longitude, 'self');
           },
-          (error) => alert(JSON.stringify(error)),
+          (error) => alert('Locate failed\n'+JSON.stringify(error)),
           {enableHighAccuracy: false, timeout: 5000, maximumAge: 6000});
   }
 
-  nextState(eventKey, dataKeys){
-    switch(eventKey){
-      case 'selectLocation':
-                data = this.props.store.getData(dataKeys);
-                console.log(data);
-                var latitude = parseFloat(data.latitude);
-                var longitude = parseFloat(data.longitude);
-                this.annImages['dest'].fullName=data.fullName;
-                this.annImages['dest'].shortName=data.shortName;
-                this.setCenterWithAnn(latitude, longitude, 'dest');
-                break;
-      default: return eventKey;
-    }
-  }
+
+
   render() {
     StatusBar.setHidden(true);
     return (
-      <View style={styles.container}>
-        <MapView
-          ref={map => { this._map = map; }}
-          style={styles.map}
-          initialCenterCoordinate={this.state.center}
-          initialZoomLevel={this.state.zoom}
-          initialDirection={0}
-          showsUserLocation={true}
-          rotateEnabled={true}
-          scrollEnabled={true}
-          zoomEnabled={true}
-          styleURL={Mapbox.mapStyles.light}
-          userTrackingMode={this.state.userTrackingMode}
-          annotations={this.state.annotations}
-          annotationsAreImmutable
-          onChangeUserTrackingMode={this.onChangeUserTrackingMode}
-          onRegionDidChange={this.onRegionDidChange}
-          onRegionWillChange={this.onRegionWillChange}
-          onOpenAnnotation={this.onOpenAnnotation}
-          onRightAnnotationTapped={this.onRightAnnotationTapped}
-          onUpdateUserLocation={this.onUpdateUserLocation}
-          onLongPress={this.onLongPress}
-          onTap={this.onTap}
-        />
+      <View {...this.prepareRootProps()}>
+          <MapView
+            ref={map => { this._map = map; }}
+            style={this.getInitialStyle().map}
+            {...this.getMapOptions()}
+            annotationsAreImmutable/>
         <View>
-        <Button large transparent style={{position: 'absolute', bottom:50, right:30, width:80, height:80}}
-        onPress={()=>{   //console.log('pressed');
-                          this.getSelfLocation(setCenterWithAnn);
-                      }
-                }>
-                <Icon name='md-person'/>
-        </Button>
+          <Button large transparent style={this.getInitialStyle().button}
+          onPress={()=>{this.getSelfLocation(this.setCenterWithAnn);}}>
+                  <Icon name='md-person'/>
+          </Button>
         </View>
       </View>
     );
   }
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    //,
-    //alignItems: 'stretch'
-  },
-  map: {
-    flex: 1,
-    //height: 500,
-    //alignSelf : 'stretch'
-    //margin : 0
-  },
-  scrollView: {
-    //flex: 1
-  }
-});
+};
