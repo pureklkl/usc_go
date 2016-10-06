@@ -5,15 +5,16 @@ export class LocatorSuggestion{
 		this.dataSource = new USCApiHelper();
 		this.indexReady=false;
 	}
-	async init(dispather){
+	init(dispather){
 		var fetched=false;
-		this.data=await this.dataSource.loadData();
-		console.log('fetched');
-		this.locationData=this.data.data;
-		console.log(this.locationData[2]);
-		this.buildIndex();
-		this.indexReady=true;
-		dispather.triger('suggestionReady',[]);
+		this.data=this.dataSource.loadData().then((locationData)=>{
+			console.log('fetched');
+			this.locationData=locationData.data;
+			console.log(this.locationData[2]);
+			this.buildIndex();
+			this.indexReady=true;
+			dispather.triger('suggestionReady',[]);
+		});
 	}
 	buildIndex(){
 		this.trieIndex=new Trie();
