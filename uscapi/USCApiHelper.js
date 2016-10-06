@@ -1,10 +1,6 @@
-import Store from 'react-native-store';
+//import Store from 'react-native-store';
 import {Trie} from './Trie';
 import {AsyncStorage} from 'react-native';
-
-const DB = {
-    'USC_GO': Store.model('USC_GO')
-}
 
 export class USCApiHelper{
 	constructor(){
@@ -44,6 +40,7 @@ export class USCApiHelper{
 					}
 					else if(Date.now()-this.locationData.date>=this.date_valid){
 						needFetch=true;
+						alert('local data outdate download new one');
 						//this.updateData();
 						console.log("updata data");
 					}
