@@ -2,18 +2,22 @@
 import {Trie} from './Trie';
 import {AsyncStorage} from 'react-native';
 
+import {_Debug} from '../debugHelper/wraper';
+
 export class USCApiHelper{
+	
 	constructor(){
 		this.all_location_url = 'http://web-app.usc.edu/maps/all_map_data2.js';
 		this.all_location_storage_key='@USC_GO:USC_ALL_LOCATION_KEY';
 		this.date_valid=1000*60*60*24*30;//refresh every 30 days
-		this.usc_filter = {where : {dataName : {eq : this.all_location_storage_key}}};
+		//this.usc_filter = {where : {dataName : {eq : this.all_location_storage_key}}};
 		//AsyncStorage.clear();
 	}
+
 	fetchdata(){
 		return fetch(this.all_location_url).
-				then((response) => {console.log(response.status); return response.text();},
-					  (reason)=>console.log(reason)).
+				then((response) => {_Debug.console.log(response.status); return response.text();},
+					  (reason)=>_Debug.console.log(reason)).
 				then((responseText) => {
 					var value = this.parseWraper(responseText);
 					
@@ -21,31 +25,32 @@ export class USCApiHelper{
 		        						date:Date.now(),
 		        						data:value};
 		        	
-		        	console.log(value[2]);
+		        	_Debug.console.log(value[2]);
 		        	this.addData();
 		    		return new Promise((resolve, reject)=>{
 								resolve(this.locationData);
 							});
 					},
-					(reason)=>console.log(reason)
+					(reason)=>_Debug.console.log(reason)
 				);
 	}
+
 	loadData(){
 		return this.findData().then(()=>{
 				var needFetch=false;
 				if(this.locationData==null){
 						needFetch=true;
 						alert('local data not found download new one');
-						console.log("new data");
+						_Debug.console.log("new data");
 					}
 					else if(Date.now()-this.locationData.date>=this.date_valid){
 						needFetch=true;
 						alert('local data outdate download new one');
 						//this.updateData();
-						console.log("updata data");
+						_Debug.console.log("updata data");
 					}
 					else{
-						console.log("get data");
+						_Debug.console.log("get data");
 					}
 					if(needFetch){
 						return this.fetchdata();
@@ -57,7 +62,6 @@ export class USCApiHelper{
 				});
 	}
 
-	
 	parseWraper(value){
 		if(!value)
 			return null;
@@ -66,6 +70,7 @@ export class USCApiHelper{
 			return eval(value);
 		}
 	}
+
 	addData(){
 		//DB.USC_GO.add(this.locationData);
 		try{
@@ -74,13 +79,13 @@ export class USCApiHelper{
 				(error, result)=>{
 									if(result!=null){
 										alert('local data refreshed'); 
-										console.log('find');
+										_Debug.console.log('find');
 									}
 								})
 				}
 			);
-		}catch(erro){
-			console.log(erro);
+		} catch(erro) {
+			_Debug.console.log(erro);
 		}
 	}
 	findData(){
@@ -89,13 +94,13 @@ export class USCApiHelper{
 		try{
 			return AsyncStorage.getItem(this.all_location_storage_key,
 				(error, result)=>{
-					console.log(error);
+					_Debug.console.log(error);
 					if(result!=null)
 						this.locationData=JSON.parse(result);
 					else
-						console.log('not found');});
-		}catch(erro){
-			console.log(erro);
+						_Debug.console.log('not found');});
+		} catch(erro) {
+			_Debug.console.log(erro);
 		}
 	}
 	//seems not needed

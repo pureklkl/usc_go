@@ -1,8 +1,10 @@
 'use strict';
 export class Trie{
+
 	stringFilter(str){
 		return str.toLowerCase().replace(/\s/g,'');
 	}
+
 	optimize(node){
 		var modify=[];
 		for(var child in node.children){
@@ -29,6 +31,7 @@ export class Trie{
 				this.optimize(node.children[child]);
 		}
 	}
+
 	find(query){
 		query=this.stringFilter(query);
 		var letters = query.split(""), cur = this.trie, result=cur.data;
@@ -60,6 +63,7 @@ export class Trie{
 		}
 		return result;
 	}
+
 	insert(word, node){
 		if(!(word&&node))
 			return null;
@@ -79,6 +83,7 @@ export class Trie{
 			cur.data=cur.data.concat(node);
 		}		
 	}
+	
 	build(data, keyfield){
 		this.trie=new trieNode;
 		if(Array.isArray(data)){

@@ -3,7 +3,7 @@ import {Platform, Text, View } from 'react-native';
 import NativeBaseComponent from './node_modules/native-base/Components/Base/NativeBaseComponent';
 import {Button, Icon, InputGroup, Input,} from 'native-base';
 import computeProps from './node_modules/native-base/Utils/computeProps';
-
+import {_Debug} from './debugHelper/wraper';
 
 export class SearchInput extends NativeBaseComponent {
 
@@ -26,7 +26,8 @@ export class SearchInput extends NativeBaseComponent {
 				fontSize: 24
 			},
 			buttonDefault: {
-				width:40
+				width:40,
+        paddingBottom:15
 			}
 		}
 	}
@@ -41,7 +42,7 @@ export class SearchInput extends NativeBaseComponent {
 
 	nextState(eventKey, dataKeys){
         if(eventKey=='queryClear'){
-        	console.log('clicked'); 
+        	_Debug.console.log('clicked'); 
         	this._searchBar._textInput.setNativeProps({text: ''});
         	this.queryChange('');
         	this._searchBar.setState({});
@@ -55,17 +56,17 @@ export class SearchInput extends NativeBaseComponent {
 
 	render(){
 		return (
-                <InputGroup borderType='rounded' {...this.prepareRootProps()}>
-                      <Icon style={{marginLeft:10}} name='ios-search'/>
-                      
-                      <Input 
-                        placeholder='Search' style={this.getInitialStyle().inputDefault} 
-                        ref={(searchBar)=>{this._searchBar=searchBar;}} 
-                        onChangeText={text=>this.queryChange(text)}/>
+        <InputGroup borderType='rounded' {...this.prepareRootProps()}>
+              <Icon style={{marginLeft:10}} name='ios-search'/>
+              
+              <Input 
+                placeholder='Search' style={this.getInitialStyle().inputDefault} 
+                ref={(searchBar)=>{this._searchBar=searchBar;}} 
+                onChangeText={text=>this.queryChange(text)}/>
 
-                      <Button large transparent  style={this.getInitialStyle().buttonDefault} 
-                      onPress={()=>this.clearQuery()}><Icon name='ios-close'/></Button>
-                </InputGroup>
+              <Button large transparent  style={this.getInitialStyle().buttonDefault} 
+              onPress={()=>this.clearQuery()}><Icon name='ios-close'/></Button>
+        </InputGroup>
 			);
 	}
 
@@ -88,7 +89,7 @@ export class SearchInput extends NativeBaseComponent {
           this.props.store.dataStore('querySuggestion', suggestionShow);
         }
         else{
-          console.log('clear');
+          _Debug.console.log('clear');
           this.props.store.dataStore('querySuggestion', []);
         }
         this.props.store.triger('queryChange', 'querySuggestion');
